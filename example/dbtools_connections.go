@@ -83,13 +83,15 @@ func ValidateDBToolsConnection(cfg DBToolsConfig) {
 
 	var connectionDetailsType databasetools.ValidateDatabaseToolsConnectionDetails
 
-	// This is kind of ugly. For some reason we don't expose ConnectionString in the SDK and
-	// also, for some reason we require a type to be specified for vaidate here. This is not
-	// ideal, but it works for now.
-	if strings.Contains(connection.String(), "mysql://") {
+	// You need to specify the type of connection for validation so you can
+	// do that with type assertion, for example:
+	switch connection.DatabaseToolsConnection.(type) {
+	case databasetools.DatabaseToolsConnectionMySql:
 		connectionDetailsType = databasetools.ValidateDatabaseToolsConnectionMySqlDetails{}
-	} else {
+	case databasetools.DatabaseToolsConnectionOracleDatabase:
 		connectionDetailsType = databasetools.ValidateDatabaseToolsConnectionOracleDatabaseDetails{}
+	default:
+		log.Fatalf("unexpected connection type: %T", connection)
 	}
 
 	validate, err := client.ValidateDatabaseToolsConnection(ctx,
